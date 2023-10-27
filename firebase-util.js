@@ -28,9 +28,10 @@ async function updateStatsFromRequest(data) {
 
         const { company, good, bad, veryGood, veryBad, neutral } = data;
         const statsRef = db.collection('Stats').doc(company);
-
+        
         await db.runTransaction(async(t) => {
             const doc = await t.get(statsRef);
+            if(doc.exists) {
             const docData = doc.data();
             const updatedData = {
                 good: (docData.good || 0) + good,
@@ -41,6 +42,9 @@ async function updateStatsFromRequest(data) {
               };
 
             t.set(statsRef, updatedData);
+        } else {
+            t.set(statsRef, { good, bad, veryGood, veryBad, neutral });
+        }
         });
         return 'success';
     } catch(err) {
